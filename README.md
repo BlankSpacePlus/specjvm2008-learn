@@ -34,6 +34,27 @@ free -h
 nvidia-smi
 ```
 
+下载SPECjvm2008：<br>
+获取[SPECjvm2008_1_01_setup.jar](https://www.spec.org/jvm2008/)
+
+安装SPECjvm2008：
+```shell
+java -jar ./SPECjvm2008_1_01_setup.jar
+```
+
+SPECjvm2008配置文件的路径：
+- `SPECjvm2008/props/specjvm.properties`：负责整个套件的运行配置，例如指定需要运行的测试用例、测试迭代次数、每个用例跑完是否要GC等。
+- `SPECjvm2008/props/specjvm.reporter.properties`：用于丰富报表的输出内容，显示一些无法通过自动检测得到的环境信息，例如内存型号、逻辑CPU个数商等。
+
+SPECjvm2008配置文件`specjvm.properties`常见修改：
+```properties
+specjvm.additional.properties.file=props/specjvm.reporter.properties // 指定报表配置文件路径
+specjvm.benchmark.analyzer.names=HeapMemoryFreeAnalyzer HeapMemoryTotalAnalyzer // JVM堆分析器
+specjvm.home.dir=/home/<user_name>/SPECjvm2008 // SPEC_HOME路径
+specjvm.iteration.time=240s // 迭代时长
+specjvm.startup.jvm_options=-Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC // JVM调优参数
+```
+
 ## 工作负载
 
 SPECjvm2008提供了以下工作负载：
@@ -76,21 +97,59 @@ SPECjvm2008提供了以下工作负载：
 - `xml.transform`：在规定时间内，多线程迭代测试XML转换，得出ops/m。
 - `xml.validation`：在规定时间内，多线程迭代测试XMLSchema验证，得出ops/m。
 
-ops/m是性能测试中的一个常见指标，表示每分钟完成的操作数（Operations Per Minute）。它用于衡量系统或应用程序在单位时间内能够处理的操作数量。较高的ops/m值表示系统具有更高的吞吐量和处理能力，能够在单位时间内处理更多的请求或操作。
+ops/m是性能测试中的一个常见指标，表示每分钟完成的操作数（Operations Per Minute）。它用于衡量系统或应用程序在单位时间内能够处理的操作数量。较高的ops/m值表示系统具有更高的吞吐量和处理能力，能够在单位时间内处理更多的请求或操作。<br>
 在性能测试中，通常会模拟真实场景下的负载并执行一系列操作，如请求处理、数据读写、计算等。通过测量在一分钟内完成的操作数，可以评估系统的处理能力和性能。
+
+## 版本约束
+
+Java5可能遇到如下问题：
+- BEA JRockit、HP JVM、Sun Hotspot等JVM产品依赖的Apache Xerces库存在竞争，可能导致`xml.transform`测试失败。可以使用`java -jar SPECjvm2008.jar -Dspecjvm.benchmark.threads.xml.tranform=1`命令采用一个基准测试线程来避免竞争。<br>
+- Unix或Linux操作系统上，Sun Hotspot依赖的JAXP库解析目录字符串的方式存在问题，可能导致`xml.validation`测试出现`java.lang.NullPointerException`。可以用`java -jar SPECjvm2008.jar -xd `\`pwd\``/resources/xml.validation`命令指定绝对路径来解决问题。
+
+Java6可能是比较合适的版本。
+
+Java8及更高版本无法通过以下工作负载的测试：
+- `startup.compiler.compiler`
+- `startup.compiler.sunflow`
+- `compiler.compiler`
+- `compiler.sunflow`
+
+Java9及更高版本无法通过以下工作负载的测试：
+- `startup.xml.transform`
+- `startup.xml.validation`
+- `xml.transform`
+- `xml.validation`
+
+Java10及更高版本可能无法运行SPECjvm2008。
 
 ## 启动测试
 
-Operating System Version: Ubuntu 20.04.2
-CPU Model: Intel(R) Xeon(R) Gold 6226 CPU @ 2.70GHzCPU
-CPU Cores: 12
-Main Memory Size : 125GB
-Graphics Card Version: NVIDIA Corporation TU102 [GeForce RTX 2080 Ti]
-JDK Version : jdk-8u371-linux-x64
-JRE Version : 1.8.0_371-b11
+测试环境：
+- Operating System Version: Ubuntu 20.04.2
+- CPU Model: Intel(R) Xeon(R) Gold 6226 CPU @ 2.70GHzCPU
+- CPU Cores: 12
+- Main Memory Size : 125GB
+- Graphics Card Version: NVIDIA Corporation TU102 [GeForce RTX 2080 Ti]
+- JDK Version : jdk-8u371-linux-x64
+- JRE Version : 1.8.0_371-b11
 
+测试模式：
+- `--base`：不允许做任何JVM参数调整。
+- `--peak`：可以添加JVM调优参数。
+
+跳过签名检查：`-ikv`
+
+测试命令：
 ```shell
 java -Djava.awt.headless=true -jar SPECjvm2008.jar -i console -ikv startup.helloworld  startup.compress startup.crypto.aes startup.crypto.rsa startup.crypto.signverify startup.mpegaudio startup.scimark.fft startup.scimark.lu startup.scimark.monte_carlo startup.scimark.sor startup.scimark.sparse startup.serial startup.sunflow startup.xml.validation  compress crypto.aes crypto.rsa crypto.signverify derby mpegaudio scimark.fft.large scimark.lu.large scimark.sor.large scimark.sparse.large scimark.fft.small scimark.lu.small scimark.sor.small scimark.sparse.small scimark.monte_carlo serial sunflow xml.validation
 ```
 
+测试时间：约2h
+
+测试结果：<br>
+测试完成后，前往`SPECjvm2008/results/`目录下查看测试结果HTML文档。<br>
 Noncompliant composite result : 969.38 ops/m
+
+## 异常解决
+
+推荐阅读：[SPECjvm2008已知问题解决方案](https://www.spec.org/jvm2008/docs/KnownIssues.html)
