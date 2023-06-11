@@ -5,6 +5,7 @@
 SPECjvm2008是一个基准测试套件，包含几个现实场景的应用程序和一些专注于核心Java功能的基准测试。
 
 下面是一些SPECjvm2008的关键基本信息：
+- SPECjvm2008是由Java小组的核心设计团队开发的。AMD、BEA、HP、IBM、Intel、Sun都参与了该产品的设计、实施和测试阶段。
 - SPECjvm2008计划在2006年发布，测试和其他延迟导致发布于2008年，因此命名为SPECjvm2008。
 - SPECjvm2008测试JRE在典型Java应用程序上的性能，包括JAXP、Crypto库，不包括JavaEE内容（EJB、Servlet、JSP等）。
 - SPECjvm2008还在执行JRE的上下文中测量操作系统和硬件的性能。
@@ -202,6 +203,44 @@ SPECjvm2008的一项基准测试需要2分钟的预热时间和4分钟的测量�
 为了保证公平和准确性、确保在测量期内开始的每个操作都会对测量结果产生影响，SPECjvm2008的操作会继续执行直到所有在测量期内开始的操作都完成（即使测量期已经结束），但只有在测量期内执行的部分会被计算在内。<br>如果有一部分操作在测量期内开始但没有在期内完成，那么它对测量结果的贡献程度将取决于它在测量期内执行的时间比例，这个数值位于0到1之间。为了确保在测量期外执行操作不会有任何优势，测试框架会继续执行线程，直到所有在测量期内开始的操作都完成为止。这样可以确保测量结果的准确性，并使不同操作在相同条件下进行比较。
 
 SPECjvm2008关注秒为单位的操作时长。通过连续运行多个操作（很可能是短时间的操作）并持续一段时间，会出现一些典型的JVM问题，例如内存系统的负载（分配、垃圾回收等），这是Java性能的关键。当连续运行基准测试操作4分钟时，JVM需要处理这些"副作用"。
+
+## 启动参数
+
+运行示例：
+```shell
+java -jar SPECjvm2008.jar --help
+```
+
+| 短参数 | 长参数 | 值类型 | 属性名称 | 详细描述 |
+|:----:|:----:|:----:|:----:|:----:|
+| -h | --help |   |   | 显示帮助信息 |
+|   | --version |   |   | 输出SPECjvm2008版本并退出 |
+| -sv | --showversion |   |   | 输出SPECjvm2008版本并继续 |
+|   | --base |   |   | 运行SPECjvm2008的基本吞吐量测量（默认参数） |
+|   | --peak |   |   | 运行SPECjvm2008的峰值吞吐量测量 |
+|   | --lagom |   |   | 运行Lagom基准套件（采用固定的工作负载） |
+| -pf | --propfile | string | specjvm.propfile | 引入属性配置文件 |
+| -i | --iterations | int | specjvm.miniter, specjvm.maxniter | 指定运行的迭代次数（`inf`代表无限） |
+| -mi | --miniter | int | specjvm.miniter | 设置最小迭代次数 |
+| -ma | --maxiter | int | specjvm.maxniter | 设置最大迭代次数 |
+| -it | --iterationtime | time | specjvm.iteration.time | 设置一次迭代持续的时间，例如`4m`，可选单位有`ms`、`s`、`m`、`h`<br>如果迭代时间太短，会根据预热结果调整为期望至少完成5次操作 |
+| -fit | --forceIterationIime | time | specjvm.iteration.time, specjvm.iteration.time.forced | 强制设置迭代时间，但不会根据warmup结果调整时间 |
+| -ja | --jvmArgs | string | specjvm.startup.jvm_options | 启动子测试的JVM选项 |
+| -jl | --jvmLauncher | path | specjvm.benchmark.startup.launcher | 启动子测试的JVM启动器 |
+| -wt | --warmuptime | time | specjvm.benchmark.warmup.time | 设置预热时间，例如`2m`，可选单位有`ms`、`s`、`m`、`h` |
+| -ops | --operations | int | specjvm.fixed.operations, specjvm.run.type | 设置每次迭代将包含多少个操作，这将明确一个固定的工作负载，迭代时间将被忽略 |
+| -bt | --benchmarkThreads | int | specjvm.benchmark.threads | 设置需要使用的基准线程数 |
+| -r | --reporter | raw file name |   | 从给定的文件中引入reporter，基准测试将不会运行 |
+| -v | --verbose |   | specjvm.print.verbose, specjvm.print.progress | 输出详细信息（仅限测试框架） |
+| -pja | --parseJvmArgs |   |   | 从命令行解析JVM参数信息 |
+| -coe | --continueOnError |   | specjvm.continue.on.error | 允许测试失败时继续运行套件 |
+| -ict | --ignoreCheckTest |   | specjvm.run.initial.check | 不运行检查基准 |
+| -ikv | --ignoreKitValidation |   | specjvm.run.checksum.validation | 不运行校验和验证基准 |
+| -crf | --createRawFile | boolean | specjvm.create.xml.report | 设置是否生成原始文件 |
+| -ctf | --createTextFile | boolean | specjvm.create.txt.report | 设置是否生成文本报告，如果raw禁用则txt也禁用 |
+| -chf | --createHtmlFile | boolean | specjvm.create.html.report | 设置是否生成html报告，如果raw禁用则html也禁用 |
+| -xd | --xmlDir | path | specjvm.benchmark.xml.validation.input.dir | 设置XML输入文件路径 |
+|   | <benchmark(s)> |   | specjvm.benchmarks | 注明要运行的全部基准测试的名称，默认运行所有基准 |
 
 ## 启动测试
 
