@@ -1,5 +1,22 @@
 # SPECjvm2008学习记录
 
+## 基本信息
+
+SPECjvm2008是一个基准测试套件，包含几个现实场景的应用程序和一些专注于核心Java功能的基准测试。
+
+下面是一些SPECjvm2008的关键基本信息：
+- SPECjvm2008计划在2006年发布，测试和其他延迟导致发布于2008年，因此命名为SPECjvm2008。
+- SPECjvm2008测试JRE在典型Java应用程序上的性能，包括JAXP、Crypto库，不包括JavaEE内容（EJB、Servlet、JSP等）。
+- SPECjvm2008还在执行JRE的上下文中测量操作系统和硬件的性能。
+- SPECjvm2008除了测试吞吐量以外，还关注Java用户体验。
+- SPECjvm2008的jar包中包含其全部源码。
+- SPECjvm2008的源码也被公开在[GitHub](https://github.com/connorimes/SPECjvm2008)上。
+- SPECjvm2008只能在单个JVM实例中工作，侧重于执行单个应用程序的JRE的性能。
+- SPECjvm2008采用定时运行的运行模式，其中基准测试应尽可能在测量期内完成。
+- SPECjvm2008可以反映硬件处理器和内存子系统的性能，但对文件I/O的依赖性低，并且不包括跨机器的网络I/O。
+- SPECjvm2008的结果发布于[SPEC官方网站](https://www.spec.org/jvm2008/results/)。
+- SPECjvm2008无法与任何其他基准进行比较。
+
 ## 配置环境
 
 配置Java环境变量：
@@ -10,6 +27,59 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH:$SRILM/bin/i686-m64:$SRILM/b
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME
 export PATH="$PATH:/tmp/bin"
 ```
+
+下载SPECjvm2008：<br>
+获取[SPECjvm2008_1_01_setup.jar](https://www.spec.org/jvm2008/)
+
+安装SPECjvm2008：
+```shell
+java -jar ./SPECjvm2008_1_01_setup.jar
+```
+
+SPECjvm2008配置文件的路径：
+- `SPECjvm2008/props/specjvm.properties`：负责整个套件的运行配置，例如指定需要运行的测试用例、测试迭代次数、每个用例跑完是否要GC等。
+- `SPECjvm2008/props/specjvm.reporter.properties`：用于丰富报表的输出内容，显示一些无法通过自动检测得到的环境信息，例如内存型号、逻辑CPU个数商等。
+
+SPECjvm2008配置文件`specjvm.properties`常见修改：
+```properties
+specjvm.additional.properties.file=props/specjvm.reporter.properties // 指定报表配置文件路径
+specjvm.benchmark.analyzer.names=HeapMemoryFreeAnalyzer HeapMemoryTotalAnalyzer // JVM堆分析器
+specjvm.home.dir=/home/<user_name>/SPECjvm2008 // SPEC_HOME路径
+specjvm.iteration.time=240s // 迭代时长
+specjvm.startup.jvm_options=-Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC // JVM调优参数
+```
+
+## 系统环境
+
+官方支持的组合：
+- Java Virtual Machines:
+    - Apache Harmony (5.0)
+    - BEA JRockit (5.0 and 6.0)
+    - HP JVM for HP-UX
+    - IBM J9 (5.0 and 6.0)
+    - Java for Sun OS X
+    - Sun HotSpot (5.0 and 6.0)
+- Operating Systems:
+    - AIX
+    - IBM i Operating System
+    - HP-UX
+    - Linux (multiple vendors and versions)
+    - Solaris (9 and 10)
+    - Z/OS
+    - Windows (Server 2003, XP, Vista)
+- Hardware Architectures:
+    - Itanium
+    - PA RISC
+    - IBM Power Systems
+    - SPARC (Niagra and Ultra SPARC, 32-bits and 64-bits)
+    - X86 (AMD (Opteron), Intel (Netburst and Core2), 32-bits and 64-bits)
+- Scalability:
+    - Tested on as much as 8 sockets, 32 cores and 64 hardware threads.
+
+SPECjvm2008基准测试运行的最低硬件条件：
+- 内存：512MB
+- 磁盘：256MB
+- 为了使用尽可能少的资源，可以只运行一个基准测试线程，使用选项`-bt 1`。但是，这会影响测试结果。
 
 查看操作系统信息：
 ```shell
@@ -32,27 +102,6 @@ free -h
 查看NVIDIA显卡配置：
 ```shell
 nvidia-smi
-```
-
-下载SPECjvm2008：<br>
-获取[SPECjvm2008_1_01_setup.jar](https://www.spec.org/jvm2008/)
-
-安装SPECjvm2008：
-```shell
-java -jar ./SPECjvm2008_1_01_setup.jar
-```
-
-SPECjvm2008配置文件的路径：
-- `SPECjvm2008/props/specjvm.properties`：负责整个套件的运行配置，例如指定需要运行的测试用例、测试迭代次数、每个用例跑完是否要GC等。
-- `SPECjvm2008/props/specjvm.reporter.properties`：用于丰富报表的输出内容，显示一些无法通过自动检测得到的环境信息，例如内存型号、逻辑CPU个数商等。
-
-SPECjvm2008配置文件`specjvm.properties`常见修改：
-```properties
-specjvm.additional.properties.file=props/specjvm.reporter.properties // 指定报表配置文件路径
-specjvm.benchmark.analyzer.names=HeapMemoryFreeAnalyzer HeapMemoryTotalAnalyzer // JVM堆分析器
-specjvm.home.dir=/home/<user_name>/SPECjvm2008 // SPEC_HOME路径
-specjvm.iteration.time=240s // 迭代时长
-specjvm.startup.jvm_options=-Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC // JVM调优参数
 ```
 
 ## 工作负载
@@ -122,6 +171,38 @@ Java9及更高版本无法通过以下工作负载的测试：
 
 Java10及更高版本可能无法运行SPECjvm2008。
 
+## 测试周期
+
+SPECjvm2008提供了21项测试基准：
+- `compiler.compiler`
+- `compiler.sunflow`
+- `compress`
+- `crypto`
+- `crypto.aes`
+- `crypto.rsa`
+- `crypto.signverify`
+- `derby`
+- `helloworld`
+- `mpegaudio`
+- `scimark.fft`
+- `scimark.lu`
+- `scimark.monte_carlo`
+- `scimark.sor`
+- `scimark.sparse`
+- `serial`
+- `startup`
+- `startup.helloworld`
+- `sunflow`
+- `xml.transform`
+- `xml.validation`
+
+SPECjvm2008的一项基准测试需要2分钟的预热时间和4分钟的测量运行时间。在此期间，多项不被中断的操作将被执行，直到所有线程都完成了在测量间隔内开始的操作才会终止。实际的测量周期会长于预估的4分钟，某些情况下时间甚至会明显增加。<br>
+因此，总的执行时间至少为$21×6=126$分钟，即大约2小时。
+
+为了保证公平和准确性、确保在测量期内开始的每个操作都会对测量结果产生影响，SPECjvm2008的操作会继续执行直到所有在测量期内开始的操作都完成（即使测量期已经结束），但只有在测量期内执行的部分会被计算在内。<br>如果有一部分操作在测量期内开始但没有在期内完成，那么它对测量结果的贡献程度将取决于它在测量期内执行的时间比例，这个数值位于0到1之间。为了确保在测量期外执行操作不会有任何优势，测试框架会继续执行线程，直到所有在测量期内开始的操作都完成为止。这样可以确保测量结果的准确性，并使不同操作在相同条件下进行比较。
+
+SPECjvm2008关注秒为单位的操作时长。通过连续运行多个操作（很可能是短时间的操作）并持续一段时间，会出现一些典型的JVM问题，例如内存系统的负载（分配、垃圾回收等），这是Java性能的关键。当连续运行基准测试操作4分钟时，JVM需要处理这些"副作用"。
+
 ## 启动测试
 
 测试环境：
@@ -134,8 +215,8 @@ Java10及更高版本可能无法运行SPECjvm2008。
 - JRE Version : 1.8.0_371-b11
 
 测试模式：
-- `--base`：不允许做任何JVM参数调整。
-- `--peak`：可以添加JVM调优参数。
+- `--base`：总基础吞吐量测量，从完全兼容的基础运行中获得的总体吞吐量结果，不允许做任何JVM参数调整。
+- `--peak`：总峰值吞吐量测量，从完全兼容的峰值运行中获得的总吞吐量结果，可以添加JVM调优参数。
 
 跳过签名检查：`-ikv`
 
@@ -144,7 +225,7 @@ Java10及更高版本可能无法运行SPECjvm2008。
 java -Djava.awt.headless=true -jar SPECjvm2008.jar -i console -ikv startup.helloworld  startup.compress startup.crypto.aes startup.crypto.rsa startup.crypto.signverify startup.mpegaudio startup.scimark.fft startup.scimark.lu startup.scimark.monte_carlo startup.scimark.sor startup.scimark.sparse startup.serial startup.sunflow startup.xml.validation  compress crypto.aes crypto.rsa crypto.signverify derby mpegaudio scimark.fft.large scimark.lu.large scimark.sor.large scimark.sparse.large scimark.fft.small scimark.lu.small scimark.sor.small scimark.sparse.small scimark.monte_carlo serial sunflow xml.validation
 ```
 
-测试时间：约2h
+测试时间：略小于2h。（跳过了4个workflow）
 
 测试结果：<br>
 测试完成后，前往`SPECjvm2008/results/`目录下查看测试结果HTML文档。<br>
