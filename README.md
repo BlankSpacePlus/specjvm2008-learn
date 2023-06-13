@@ -20,6 +20,20 @@ SPECjvm2008是一个基准测试套件，包含几个现实场景的应用程序
 
 ## 配置环境
 
+Linux环境无法用`wget`直接绕过Oracle的登录限制下载安装包，因此只能通过下载到本机后传输到Linux机器的方式实现下载。
+
+例如，下面的命令获得的不是正确的tar.gz文件：
+```shell
+wget https://download.oracle.com/otn/java/jdk/7u80-b15/jdk-7u80-linux-x64.tar.gz
+```
+
+当执行解压命令时会报错：
+```text
+gzip: stdin: not in gzip format
+tar: Child returned status 1
+tar: Error is not recoverable: exiting now
+```
+
 ### 安装配置Java8
 
 配置Java8环境变量：
@@ -33,7 +47,9 @@ export PATH="$PATH:/tmp/bin"
 
 ### 安装配置Java7
 
-解压JDK1.7压缩包：
+选择合适的Java安装包：
+
+解压JDK1.7压缩文件：
 ```shell
 tar -zxvf jdk-7u80-linux-x64.tar.gz
 ```
@@ -58,6 +74,17 @@ export PATH=$PATH:$JAVA_HOME/bin:$JRE_HOME/bin
 source /etc/profile
 ```
 
+修改Ubuntu系统默认JDK：
+```shell
+sudo update-alternatives --install /usr/bin/java java /home/<username>/jdk1.7.0_80/bin/java 300
+sudo update-alternatives --install /usr/bin/javac javac /home/<username>/jdk1.7.0_80/bin/javac 300
+```
+
+将安装的JDK加入Java候选清单：
+```shell
+update-alternatives --config java
+```
+
 ### 安装配置SPECjvm2008
 
 下载SPECjvm2008：<br>
@@ -65,10 +92,10 @@ source /etc/profile
 
 WSL2环境安装SPECjvm2008会卡住，因为缺少依赖，可通过补全依赖解决：
 ```shell
-apt install x11-apps
-apt install x11-session-utils
-apt install dconf-editor
-apt install gedit
+sudo apt install x11-apps
+sudo apt install x11-session-utils
+sudo apt install dconf-editor
+sudo apt install gedit
 ```
 
 安装SPECjvm2008(GUI)：
@@ -83,7 +110,7 @@ java -jar ./SPECjvm2008_1_01_setup.jar -i console
 
 SPECjvm2008配置文件的路径：
 - `SPECjvm2008/props/specjvm.properties`：负责整个套件的运行配置，例如指定需要运行的测试用例、测试迭代次数、每个用例跑完是否要GC等。
-- `SPECjvm2008/props/specjvm.reporter.properties`：用于丰富报表的输出内容，显示一些无法通过自动检测得到的环境信息，例如内存型号、逻辑CPU个数商等。
+- `SPECjvm2008/props/specjvm.reporter.properties`：用于丰富报表的输出内容，显示一些无法通过自动检测得到的环境信息，例如内存型号、逻辑CPU个数等。
 
 SPECjvm2008配置文件`specjvm.properties`常见修改：
 ```properties
@@ -92,22 +119,6 @@ specjvm.benchmark.analyzer.names=HeapMemoryFreeAnalyzer HeapMemoryTotalAnalyzer 
 specjvm.home.dir=/home/<user_name>/SPECjvm2008 // SPEC_HOME路径
 specjvm.iteration.time=240s // 迭代时长
 specjvm.startup.jvm_options=-Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC // JVM调优参数
-```
-
-### 安装配置perf
-
-安装perf(Ubuntu环境)：
-```shell
-apt update && apt upgrade
-apt-get install linux-tools-common linux-tools-generic linux-cloud-tools-generic linux-tools-`uname -r`
-```
-
-安装perf(WSL环境)：
-```shell
-sudo apt install build-essential flex bison libssl-dev libelf-dev
-git clone --depth=1 https://github.com/microsoft/WSL2-Linux-Kernel.git
-cd WSL2-Linux-Kernel/tools/perf
-make
 ```
 
 ## 系统环境
@@ -141,6 +152,11 @@ SPECjvm2008基准测试运行的最低硬件条件：
 - 内存：512MB
 - 磁盘：256MB
 - 为了使用尽可能少的资源，可以只运行一个基准测试线程，使用选项`-bt 1`。但是，这会影响测试结果。
+
+查看WSL版本：
+```shell
+wsl -l -v
+```
 
 查看操作系统信息：
 ```shell
@@ -357,7 +373,7 @@ Noncompliant composite result : 969.38 ops/m
         linux-tools-generic
         linux-cloud-tools-generic
     ```
-- 以`apt install linux-tools-5.11.0-37-generic`安装`linux-tools-5.11.0-37-generic`时报错：
+- 以`sudo apt install linux-tools-5.11.0-37-generic`安装`linux-tools-5.11.0-37-generic`时报错：
     ```text
     Reading package lists... Done
     Building dependency tree... Done
@@ -370,8 +386,74 @@ Noncompliant composite result : 969.38 ops/m
 
 推荐阅读：[SPECjvm2008已知问题解决方案](https://www.spec.org/jvm2008/docs/KnownIssues.html)
 
-## 参考资料
+# perf学习记录
 
-1. [菜鸟教程 Linux apt 命令](https://www.runoob.com/linux/linux-comm-apt.html)
-2. [菜鸟教程 Docker 容器使用](https://www.runoob.com/docker/docker-container-usage.html)
-3. [Gist: Install perf inside docker container](https://gist.github.com/nidhi-ag/0eed632509a79ebc75218a8485a1ebe1)
+## 配置环境
+
+### 安装配置perf
+
+安装perf(Ubuntu环境)：
+```shell
+sudo apt update
+sudo apt upgrade
+sudo apt-get install linux-tools-common linux-tools-generic linux-cloud-tools-generic linux-tools-`uname -r`
+```
+
+安装perf(WSL-Ubuntu环境)：
+```shell
+sudo apt update
+sudo apt upgrade
+sudo apt-get install linux-tools-common linux-tools-generic linux-cloud-tools-generic linux-tools-`uname -r`
+sudo apt install build-essential flex bison libssl-dev libelf-dev
+git clone --depth=1 https://github.com/microsoft/WSL2-Linux-Kernel.git
+cd WSL2-Linux-Kernel/tools/perf
+make
+cp perf /usr/bin
+```
+
+查看perf版本：
+```shell
+perf version
+```
+
+### 安装配置FlameGraph
+
+下载[FlameGraph](https://github.com/brendangregg/FlameGraph)源码：
+```shell
+git clone https://github.com/brendangregg/FlameGraph.git
+```
+
+## 监控性能与生成火焰图
+
+监测全局性能(输入`Ctrl+C`终止监测，输出数据是`perf.data`)：
+```shell
+perf record -g
+```
+
+查看perf记录：
+```shell
+perf report
+```
+
+将perf数据转化为txt格式：
+```shell
+perf script > perf.data.txt
+```
+
+根据`perf.data.txt`生成火焰图：
+```shell
+./FlameGraph/stackcollapse-perf.pl perf.data.txt | ./FlameGraph/flamegraph.pl > flamegraph.svg
+```
+
+# 参考资料
+
+1. [菜鸟教程: Linux apt命令](https://www.runoob.com/linux/linux-comm-apt.html)
+2. [菜鸟教程: Docker容器使用](https://www.runoob.com/docker/docker-container-usage.html)
+3. [Git-SCM: Git Document](https://git-scm.com/doc)
+4. [简书: Linux安装.bin文件](https://www.jianshu.com/p/a812043edec4)
+5. [Gist: Install perf inside docker container](https://gist.github.com/nidhi-ag/0eed632509a79ebc75218a8485a1ebe1)
+6. [简书: SPECjvm2008堵塞调试](https://www.jianshu.com/p/9924b206bdfe)
+7. [StackOverflow: Is there any method to run perf under WSL?](https://stackoverflow.com/questions/60237123/is-there-any-method-to-run-perf-under-wsl)
+8. [StackExchange: How to install "perf" monitoring tool?](https://askubuntu.com/questions/50145/how-to-install-perf-monitoring-tool)
+9. [GitHub: Stupid WARNING messages prevent me from running valid commands](https://github.com/microsoft/WSL/issues/9917)
+10. [chinggg的博客: 在Docker中运行Linux性能分析工具perf](https://chinggg.github.io/post/docker-perf/)
