@@ -423,7 +423,9 @@ perf version
 git clone https://github.com/brendangregg/FlameGraph.git
 ```
 
-## 监控性能与生成火焰图
+## 监测性能与生成火焰图
+
+### 全局性能监测
 
 监测全局性能(输入`Ctrl+C`终止监测，输出数据是`perf.data`)：
 ```shell
@@ -444,6 +446,28 @@ perf script > perf.data.txt
 ```shell
 ./FlameGraph/stackcollapse-perf.pl perf.data.txt | ./FlameGraph/flamegraph.pl > flamegraph.svg
 ```
+
+### SPECjvm2008性能监测
+
+编写[`wait_perf.sh`](./src/wait_perf.sh)脚本实现以下任务目标：在忙等待的状态下获取特定命令的进程pid，并在进程执行期间使用perf命令对该进程进行监测，最后在进程执行结束后结束程序。
+
+监测指定进程的性能(输入`Ctrl+C`终止监测，输出数据是`perf.data`)：
+```shell
+perf record -p <pid> -g
+```
+
+将perf数据转化为txt格式：
+```shell
+perf script > perf.data.txt
+```
+
+根据`perf.data.txt`生成火焰图：
+```shell
+./FlameGraph/stackcollapse-perf.pl perf.data.txt | ./FlameGraph/flamegraph.pl > flamegraph-compress.svg
+```
+
+火焰图效果展示：<br>
+![](./results/flamegraph-compress.svg)
 
 # 参考资料
 
