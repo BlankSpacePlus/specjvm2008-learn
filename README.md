@@ -20,7 +20,9 @@ SPECjvm2008是一个基准测试套件，包含几个现实场景的应用程序
 
 ## 配置环境
 
-配置Java环境变量：
+### 安装配置Java8
+
+配置Java8环境变量：
 ```shell
 export JAVA_HOME=/data/<username>/java/jdk1.8.0_371
 export CLASSPATH=$CLASSPATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
@@ -29,12 +31,54 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME
 export PATH="$PATH:/tmp/bin"
 ```
 
+### 安装配置Java7
+
+解压JDK1.7压缩包：
+```shell
+tar -zxvf jdk-7u80-linux-x64.tar.gz
+```
+
+配置Java7环境变量：
+```shell
+vim /etc/profile
+```
+
+向`/etc/profile`文件中添加下面的内容：
+
+```shell
+export JAVA_HOME=/home/<username>/jdk1.7.0_80
+export JRE_HOME=$JAVA_HOME/jre
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export PATH=$PATH:$JAVA_HOME/bin:$JRE_HOME/bin
+```
+
+修改后立即生效：
+
+```shell
+source /etc/profile
+```
+
+### 安装配置SPECjvm2008
+
 下载SPECjvm2008：<br>
 获取[SPECjvm2008_1_01_setup.jar](https://www.spec.org/jvm2008/)
 
-安装SPECjvm2008：
+WSL2环境安装SPECjvm2008会卡住，因为缺少依赖，可通过补全依赖解决：
+```shell
+apt install x11-apps
+apt install x11-session-utils
+apt install dconf-editor
+apt install gedit
+```
+
+安装SPECjvm2008(GUI)：
 ```shell
 java -jar ./SPECjvm2008_1_01_setup.jar
+```
+
+安装SPECjvm2008(Command Line)：
+```shell
+java -jar ./SPECjvm2008_1_01_setup.jar -i console
 ```
 
 SPECjvm2008配置文件的路径：
@@ -48,6 +92,22 @@ specjvm.benchmark.analyzer.names=HeapMemoryFreeAnalyzer HeapMemoryTotalAnalyzer 
 specjvm.home.dir=/home/<user_name>/SPECjvm2008 // SPEC_HOME路径
 specjvm.iteration.time=240s // 迭代时长
 specjvm.startup.jvm_options=-Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC // JVM调优参数
+```
+
+### 安装配置perf
+
+安装perf(Ubuntu环境)：
+```shell
+apt update && apt upgrade
+apt-get install linux-tools-common linux-tools-generic linux-cloud-tools-generic linux-tools-`uname -r`
+```
+
+安装perf(WSL环境)：
+```shell
+sudo apt install build-essential flex bison libssl-dev libelf-dev
+git clone --depth=1 https://github.com/microsoft/WSL2-Linux-Kernel.git
+cd WSL2-Linux-Kernel/tools/perf
+make
 ```
 
 ## 系统环境
@@ -84,7 +144,15 @@ SPECjvm2008基准测试运行的最低硬件条件：
 
 查看操作系统信息：
 ```shell
-uname -a
+uname -a  # 查看操作系统完整信息
+uname -s  # 查看操作系统内核名称
+uname -n  # 查看网络节点上的主机名
+uname -r  # 查看操作系统内核发行号
+uname -v  # 查看操作系统内核版本
+uname -m  # 查看主机的硬件架构名称
+uname -p  # 查看处理器类型或"unknown"
+uname -i  # 查看硬件平台或"unknown"
+uname -o  # 查看操作系统名称
 ```
 
 查看系统CPU信息：
@@ -98,6 +166,11 @@ cat /proc/cpuinfo  # 查看CPU型号
 查看系统内存信息：
 ```shell
 free -h
+```
+
+查看磁盘信息：
+```shell
+df -h
 ```
 
 查看NVIDIA显卡配置：
@@ -245,11 +318,14 @@ java -jar SPECjvm2008.jar --help
 ## 启动测试
 
 测试环境：
-- Operating System Version: Ubuntu 20.04.2
-- CPU Model: Intel(R) Xeon(R) Gold 6226 CPU @ 2.70GHzCPU
-- CPU Cores: 12
+- Machine's Architecture : x86_64
+- Operating System : GNU/Linux
+- OS Kernel Release Number : 5.11.0-37-generic
+- OS Kernel Version : #41~20.04.2-Ubuntu SMP Fri Sep 24 09:06:38 UTC 2021
+- CPU Model : Intel(R) Xeon(R) Gold 6226 CPU @ 2.70GHzCPU
+- CPU Cores : 12
 - Main Memory Size : 125GB
-- Graphics Card Version: NVIDIA Corporation TU102 [GeForce RTX 2080 Ti]
+- Graphics Card Version : NVIDIA Corporation TU102 [GeForce RTX 2080 Ti]
 - JDK Version : jdk-8u371-linux-x64
 - JRE Version : 1.8.0_371-b11
 
@@ -270,6 +346,32 @@ java -Djava.awt.headless=true -jar SPECjvm2008.jar -i console -ikv startup.hello
 测试完成后，前往`SPECjvm2008/results/`目录下查看测试结果HTML文档。<br>
 Noncompliant composite result : 969.38 ops/m
 
+此系统环境下，内核版本是Ubuntu20.04.2，内核发行号是5.11.0-37-generic，硬件指令集是x86_64，能查找到的linux-tools-5.11.0-37-generic软件包只支持amd64，只不过amd64和x86_64是兼容的。问题会具体表现为：
+- 启动`perf`时提示：
+    ```text
+    WARNING: perf not found for kernel 5.11.0-37
+      You may need to install the following packages for this specific kernel:
+        linux-tools-5.11.0-37-generic
+        linux-cloud-tools-5.11.0-37-generic
+      You may also want to install one of the following packages to keep up to date:
+        linux-tools-generic
+        linux-cloud-tools-generic
+    ```
+- 以`apt install linux-tools-5.11.0-37-generic`安装`linux-tools-5.11.0-37-generic`时报错：
+    ```text
+    Reading package lists... Done
+    Building dependency tree... Done
+    Reading state information... Done
+    E: Unable to locate package linux-tools-5.11.0-37-generic
+    E: Couldn't find any package by glob 'linux-tools-5.11.0-37-generic'
+    ```
+
 ## 异常解决
 
 推荐阅读：[SPECjvm2008已知问题解决方案](https://www.spec.org/jvm2008/docs/KnownIssues.html)
+
+## 参考资料
+
+1. [菜鸟教程 Linux apt 命令](https://www.runoob.com/linux/linux-comm-apt.html)
+2. [菜鸟教程 Docker 容器使用](https://www.runoob.com/docker/docker-container-usage.html)
+3. [Gist: Install perf inside docker container](https://gist.github.com/nidhi-ag/0eed632509a79ebc75218a8485a1ebe1)
