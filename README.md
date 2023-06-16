@@ -627,7 +627,7 @@ Graphics Card Version : NULL
 JDK Version : jdk-8u371-linux-x64
 JRE Version : 1.8.0_371-b11
 
-编写[`wait_perf.sh`](./src/wait_perf.sh)脚本实现以下任务目标：在忙等待的状态下获取特定命令的进程pid，并在进程执行期间使用perf命令对该进程进行监测，最后在进程执行结束后结束程序。
+编写[`wait_until_run_perf.sh`](./src/wait_until_run_perf.sh)脚本实现以下任务目标：在忙等待的状态下获取特定命令的进程pid，并在进程执行期间使用perf命令对该进程进行监测，最后在进程执行结束后结束程序。
 
 启动compress基准测试：
 ```shell
@@ -664,7 +664,16 @@ chmod +x ./run_perf_with_map.sh
 ```
 
 火焰图效果展示：<br>
-![](./results/compress/flamegraph-compress-map.svg)
+![](./results/compress/flamegraph-compress-map-1.svg)
+
+编写脚本[run_perf_map_agent.sh](./src/run_perf_map_agent.sh)，在忙等待的状态下获取特定命令的进程pid，并在进程执行期间使用perf-map-agent对该进程进行监测，在进程执行结束后生成火焰图。将脚本放置于SPECjvm2008根路径下，将安装时的`<target_dir>`设置为SPECjvm2008根路径，然后：
+```shell
+chmod +x ./run_perf_map_agent.sh
+./run_perf_map_agent.sh
+```
+
+火焰图效果展示：<br>
+![](./results/compress/flamegraph-compress-map-2.svg)
 
 # 参考资料
 

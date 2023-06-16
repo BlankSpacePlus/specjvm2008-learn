@@ -2,7 +2,7 @@
 
 # 设置要查找的特定命令
 command_name="java"
-perf_args="record -p"
+perf_args="-F 99 -a -g -p"
 
 # 循环等待直到获取到特定命令的PID
 while true; do
@@ -11,11 +11,9 @@ while true; do
     # 如果找到PID，则输出并退出循环
     if [ -n "$pid" ]; then
         echo "PID: $pid"
-	perf $perf_args "$pid" "-g"
+        perf-java-flames "$pid" $perf_args "$pid"
         break
-    fi
-    # 等待一段时间后继续查找
-    # sleep 1
+        fi
 done
 
 # 等待特定命令执行结束
