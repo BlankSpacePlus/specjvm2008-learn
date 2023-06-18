@@ -2,13 +2,16 @@
 
 ## 基本信息
 
-SPECjvm2008是一个基准测试套件，包含几个现实场景的应用程序和一些专注于核心Java功能的基准测试。
+[SPEC](https://www.spec.org)是一个非营利性组织，旨在建立、维护和认可用于评估最新一代计算系统性能和能源效率的标准化基准和工具。SPEC开发基准套件，并审查并发布来自SPEC的成员组织和其他基准许可方提交的结果。
+
+SPECjvm2008是一个基准测试套件，包含几个现实场景的应用程序和一些专注于核心Java功能的基准测试。SPEC旨在通过SPECjvm2008基准来衡量系统和在这些系统上运行的JVM的整体性能。
 
 下面是一些SPECjvm2008的关键基本信息：
 - SPECjvm2008是由Java小组的核心设计团队开发的。AMD、BEA、HP、IBM、Intel、Sun都参与了该产品的设计、实施和测试阶段。
 - SPECjvm2008计划在2006年发布，测试和其他延迟导致发布于2008年，因此命名为SPECjvm2008。
 - SPECjvm2008测试JRE在典型Java应用程序上的性能，包括JAXP、Crypto库，不包括JavaEE内容（EJB、Servlet、JSP等）。
-- SPECjvm2008还在执行JRE的上下文中测量操作系统和硬件的性能。
+- SPECjvm2008还在执行JRE的上下文中测量操作系统和硬件的性能，可以反映硬件处理器和内存子系统的性能。
+- SPECjvm2008对文件I/O的依赖很小（执行期间对文件的读写操作较少甚至几乎没有），并且不包括远程网络I/O。这是为了尽量减少文件I/O操作对SPECjvm2008基准测试的影响，以便更好地集中在计算和内存访问等方面的性能测量，获得更准确的性能测量结果。
 - SPECjvm2008除了测试吞吐量以外，还关注Java用户体验。
 - SPECjvm2008的jar包中包含其全部源码。
 - SPECjvm2008的源码也被公开在[GitHub](https://github.com/connorimes/SPECjvm2008)上。
@@ -17,6 +20,120 @@ SPECjvm2008是一个基准测试套件，包含几个现实场景的应用程序
 - SPECjvm2008可以反映硬件处理器和内存子系统的性能，但对文件I/O的依赖性低，并且不包括跨机器的网络I/O。
 - SPECjvm2008的结果发布于[SPEC官方网站](https://www.spec.org/jvm2008/results/)。
 - SPECjvm2008无法与任何其他基准进行比较。
+
+## 关键名词
+
+- Operation：每次对基准测试工作负载的调用称为一个操作。测试框架会多次调用基准测试，使其在一次迭代中执行多个操作。
+- Iteration：一次迭代持续一定的时间，默认为240秒。在此期间，测试框架将启动多个操作，每当前一个操作完成后立即启动新的操作。它不会中止一个操作，而是等待操作完成后再停止。测试框架期望在一个迭代内完成至少5个操作。迭代的持续时间不会少于指定的时间，但如果操作花费的时间过长，根据预热期间的性能情况，可能会增加迭代的时间。
+- Warmup：第一次迭代可以称为预热迭代，默认的运行时间为120秒。预热迭代的结果不包括在基准测试结果中。如果想要跳过预热，可以将预热时间设置为0。
+- Parallelism：大多数基准测试都是并行运行的，即多个操作在单独的线程中同时启动。从测试框架的角度来看，这些线程相互独立工作，但工作负载的设计旨在引入一系列有趣的问题，包括在应用程序级别共享数据和工作，以及使用JVM内部共享的资源。
+- Analyzer：可以使用SPECjvm2008基准测试框架来分析运行过程中发生的情况（例如，查看基准测试运行期间的堆使用情况），以便了解和诊断产品。为了实现这一点，测试框架可以在基准测试运行期间运行一个或多个分析器。这些分析器将收集信息，并与基准测试结果一起提供结果。它将在报告的详细图表中绘制信息，其中绘制了每个基准测试操作，并且可以为每个迭代报告摘要指标。分析器可以在基准测试运行期间轮询信息，也可以实现回调方法，基于事件报告结果。
+- Startup Benchmark：启动基准测试测量JVM和应用程序的启动性能。ops/m指标是使用新启动的JVM（通过java.lang.Runtime.exec()）运行每个工作负载一次操作所需的时间来计算的。这既测试了基本的JVM启动时间，也测试了启动基准测试工作负载的时间，因为为了获得多个基准测试中的最佳得分，优化代码的热点区域至关重要。
+- SciMark Large and Small Workloads：SciMark工作负载使用小型和大型数据集大小进行运行。小型数据集适应大多数现代CPU架构上可用的L2缓存，并旨在测试JVM代码优化和计算性能，同时确保数据集仅在缓存中访问。大型数据集足够大，无法适应标准的L2缓存，并旨在测试针对内存和内存子系统性能的JVM优化。scimark.monte_carlo工作负载仅运行一次，因为它不使用可修改的计算数据集。
+
+## 系统环境
+
+官方支持的组合：
+- Java Virtual Machines:
+    - Apache Harmony (5.0)
+    - BEA JRockit (5.0 and 6.0)
+    - HP JVM for HP-UX
+    - IBM J9 (5.0 and 6.0)
+    - Java for Sun OS X
+    - Sun HotSpot (5.0 and 6.0)
+- Operating Systems:
+    - AIX
+    - IBM i Operating System
+    - HP-UX
+    - Linux (multiple vendors and versions)
+    - Solaris (9 and 10)
+    - Z/OS
+    - Windows (Server 2003, XP, Vista)
+- Hardware Architectures:
+    - Itanium
+    - PA RISC
+    - IBM Power Systems
+    - SPARC (Niagra and Ultra SPARC, 32-bits and 64-bits)
+    - X86 (AMD (Opteron), Intel (Netburst and Core2), 32-bits and 64-bits)
+- Scalability:
+    - Tested on as much as 8 sockets, 32 cores and 64 hardware threads.
+
+SPECjvm2008基准测试运行的最低硬件条件：
+- 内存：512MB
+- 外存：256MB
+- 为了使用尽可能少的资源，可以只运行一个基准测试线程，使用选项`-bt 1`。但是，这会影响测试结果。
+
+SPECjvm2008旨在在使用更大的机器（由逻辑CPU的数量决定）时扩展工作负载。当工作负载增加时，实时数据量会增加，并且上述最小内存、外存（derby基准测试会将数据存储在磁盘上）容量将不够用。
+
+查看WSL版本：
+```shell
+wsl -l -v
+```
+
+查看操作系统信息：
+```shell
+uname -a  # 查看操作系统完整信息
+uname -s  # 查看操作系统内核名称
+uname -n  # 查看网络节点上的主机名
+uname -r  # 查看操作系统内核发行号
+uname -v  # 查看操作系统内核版本
+uname -m  # 查看主机的硬件架构名称
+uname -p  # 查看处理器类型或"unknown"
+uname -i  # 查看硬件平台或"unknown"
+uname -o  # 查看操作系统名称
+```
+
+查看系统CPU信息：
+```shell
+cat /proc/cpuinfo |grep "physical id"|sort |uniq|wc -l  # 查看物理CPU个数
+cat /proc/cpuinfo |grep "processor"|wc -l  # 查看逻辑cpu的个数
+cat /proc/cpuinfo | grep "cpu cores" | uniq  # 查看CPU核数
+cat /proc/cpuinfo  # 查看CPU型号
+```
+
+查看系统内存信息：
+```shell
+free -h
+```
+
+查看磁盘信息：
+```shell
+df -h
+```
+
+查看NVIDIA显卡配置：
+```shell
+nvidia-smi
+```
+
+## 版本约束
+
+查看Java版本：
+```shell
+java -version
+```
+
+Java5以下版本可能无法运行SPECjvm2008。
+
+Java5可能遇到如下问题：
+- BEA JRockit、HP JVM、Sun Hotspot等JVM产品依赖的Apache Xerces库存在竞争，可能导致`xml.transform`测试失败。可以使用`java -jar SPECjvm2008.jar -Dspecjvm.benchmark.threads.xml.tranform=1`命令采用一个基准测试线程来避免竞争。<br>
+- Unix或Linux操作系统上，Sun Hotspot依赖的JAXP库解析目录字符串的方式存在问题，可能导致`xml.validation`测试出现`java.lang.NullPointerException`。可以用`java -jar SPECjvm2008.jar -xd `\`pwd\``/resources/xml.validation`命令指定绝对路径来解决问题。
+
+Java6、Java7可能是比较合适的版本。
+
+Java8及更高版本无法通过以下工作负载的测试：
+- `startup.compiler.compiler`
+- `startup.compiler.sunflow`
+- `compiler.compiler`
+- `compiler.sunflow`
+
+Java9及更高版本无法通过以下工作负载的测试：
+- `startup.xml.transform`
+- `startup.xml.validation`
+- `xml.transform`
+- `xml.validation`
+
+Java10及更高版本可能无法运行SPECjvm2008。
 
 ## 配置环境
 
@@ -144,80 +261,14 @@ specjvm.additional.properties.file=props/specjvm.reporter.properties // 指定�
 specjvm.benchmark.analyzer.names=HeapMemoryFreeAnalyzer HeapMemoryTotalAnalyzer // JVM堆分析器
 specjvm.home.dir=/home/<user_name>/SPECjvm2008 // SPEC_HOME路径
 specjvm.iteration.time=240s // 迭代时长
-specjvm.startup.jvm_options=-Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC // JVM调优参数
+specjvm.startup.jvm_options=-Xms1024m -Xmx1024m -XX:+UseConcMarkSweepGC // 默认JVM调优参数
 ```
 
-## 系统环境
+空白行和以字符`#`开头的行将被忽略。
 
-官方支持的组合：
-- Java Virtual Machines:
-    - Apache Harmony (5.0)
-    - BEA JRockit (5.0 and 6.0)
-    - HP JVM for HP-UX
-    - IBM J9 (5.0 and 6.0)
-    - Java for Sun OS X
-    - Sun HotSpot (5.0 and 6.0)
-- Operating Systems:
-    - AIX
-    - IBM i Operating System
-    - HP-UX
-    - Linux (multiple vendors and versions)
-    - Solaris (9 and 10)
-    - Z/OS
-    - Windows (Server 2003, XP, Vista)
-- Hardware Architectures:
-    - Itanium
-    - PA RISC
-    - IBM Power Systems
-    - SPARC (Niagra and Ultra SPARC, 32-bits and 64-bits)
-    - X86 (AMD (Opteron), Intel (Netburst and Core2), 32-bits and 64-bits)
-- Scalability:
-    - Tested on as much as 8 sockets, 32 cores and 64 hardware threads.
-
-SPECjvm2008基准测试运行的最低硬件条件：
-- 内存：512MB
-- 磁盘：256MB
-- 为了使用尽可能少的资源，可以只运行一个基准测试线程，使用选项`-bt 1`。但是，这会影响测试结果。
-
-查看WSL版本：
+安装成功测试：
 ```shell
-wsl -l -v
-```
-
-查看操作系统信息：
-```shell
-uname -a  # 查看操作系统完整信息
-uname -s  # 查看操作系统内核名称
-uname -n  # 查看网络节点上的主机名
-uname -r  # 查看操作系统内核发行号
-uname -v  # 查看操作系统内核版本
-uname -m  # 查看主机的硬件架构名称
-uname -p  # 查看处理器类型或"unknown"
-uname -i  # 查看硬件平台或"unknown"
-uname -o  # 查看操作系统名称
-```
-
-查看系统CPU信息：
-```shell
-cat /proc/cpuinfo |grep "physical id"|sort |uniq|wc -l  # 查看物理CPU个数
-cat /proc/cpuinfo |grep "processor"|wc -l  # 查看逻辑cpu的个数
-cat /proc/cpuinfo | grep "cpu cores" | uniq  # 查看CPU核数
-cat /proc/cpuinfo  # 查看CPU型号
-```
-
-查看系统内存信息：
-```shell
-free -h
-```
-
-查看磁盘信息：
-```shell
-df -h
-```
-
-查看NVIDIA显卡配置：
-```shell
-nvidia-smi
+java -jar SPECjvm2008.jar -wt 5s -it 5s -bt 2 -i console -ikv compress
 ```
 
 ## 工作负载
@@ -265,27 +316,22 @@ SPECjvm2008提供了以下工作负载：
 ops/m是性能测试中的一个常见指标，表示每分钟完成的操作数（Operations Per Minute）。它用于衡量系统或应用程序在单位时间内能够处理的操作数量。较高的ops/m值表示系统具有更高的吞吐量和处理能力，能够在单位时间内处理更多的请求或操作。<br>
 在性能测试中，通常会模拟真实场景下的负载并执行一系列操作，如请求处理、数据读写、计算等。通过测量在一分钟内完成的操作数，可以评估系统的处理能力和性能。
 
-## 版本约束
-
-Java5可能遇到如下问题：
-- BEA JRockit、HP JVM、Sun Hotspot等JVM产品依赖的Apache Xerces库存在竞争，可能导致`xml.transform`测试失败。可以使用`java -jar SPECjvm2008.jar -Dspecjvm.benchmark.threads.xml.tranform=1`命令采用一个基准测试线程来避免竞争。<br>
-- Unix或Linux操作系统上，Sun Hotspot依赖的JAXP库解析目录字符串的方式存在问题，可能导致`xml.validation`测试出现`java.lang.NullPointerException`。可以用`java -jar SPECjvm2008.jar -xd `\`pwd\``/resources/xml.validation`命令指定绝对路径来解决问题。
-
-Java6可能是比较合适的版本。
-
-Java8及更高版本无法通过以下工作负载的测试：
-- `startup.compiler.compiler`
-- `startup.compiler.sunflow`
-- `compiler.compiler`
-- `compiler.sunflow`
-
-Java9及更高版本无法通过以下工作负载的测试：
-- `startup.xml.transform`
-- `startup.xml.validation`
-- `xml.transform`
-- `xml.validation`
-
-Java10及更高版本可能无法运行SPECjvm2008。
+这些工作负载可以分为10类：
+- `compiler`：该基准测试使用OpenJDK前端编译器来编译一组.java文件。所编译的代码包括javac本身和SPECjvm2008中的sunflow子基准。该基准测试使用SPEVjvm2008实现的spec.benchmarks.compiler.SpecFileManager来处理内存，而不是进行磁盘和文件系统操作。采用'-proc:none'选项可以使该基准测试与1.5版本兼容。
+- `compress`：该基准测试使用修改后的Lempel-Ziv算法(LZW)对数据进行压缩，查找常见的子字符串并用可变长度的编码替换它们。该算法是确定性的，并且可以即时执行。因此，解压缩过程不需要输入表，而是跟踪表的构建方式。该算法来源于[Welch, "A Technique for High-Performance Data Compression," in Computer, vol. 17, no. 6, pp. 8-19, June 1984, doi: 10.1109/MC.1984.1659158.](https://ieeexplore.ieee.org/document/1659158)。
+- `crypto`：该基准测试侧重于加密领域的不同方面，并分为三个不同的子基准测试。这些不同的基准测试使用产品内部的实现，因此重点关注协议的供应商实现以及执行方式。
+    - `aes`加密和解密使用AES和DES协议，使用CBC/PKCS5Padding和CBC/NoPadding。输入数据大小为100B和713KB。
+    - `rsa`加密和解密使用RSA协议，使用输入数据大小为100B和16KB。
+    - `signverify`使用MD5withRSA、SHA1withRSA、SHA1withDSA、SHA256withRSA协议进行签名和验证，输入数据大小为1KB、65KB、1MB。
+- `derby`：该基准测试使用纯Java编写的开源数据库。它与业务逻辑结合，以对java.math.BigDecimal进行压力测试。它是SPECjvm98的db基准测试的直接替代，但具备更强的功能，并且尽可能接近一个真实的应用程序。该基准测试的重点是java.math.BigDecimal计算（基于电信基准测试）和数据库逻辑，特别是锁的行为。java.math.BigDecimal的计算数值尽量超过64位二进制，以便不仅仅关注“简单”的java.math.BigDecimal。
+- `mpegaudio`：该基准测试与SPECjvm98的mpegaudio非常相似，只是其中mp3库已被替换为JLayer。JLayer主要依赖浮点数运算，对mp3解码任务表现良好。
+- `scimark`：这个基准测试是由NIST开发的，被业界广泛使用作为一个浮点数基准测试。每个子测试（fft、lu、monte_carlo、sor、sparse）都被纳入SPECjvm2008中。这个测试有两个版本，一个使用“大”数据集（32兆字节），对内存子系统进行压力测试，另一个使用“小”数据集（512千字节），对JVM进行压力测试。
+- `serial`：该基准测试对基本类型和引用类型进行序列化和反序列化，使用了JBoss基准测试的数据。该基准测试采用生产者-消费者场景，通过socket发送序列化的对象，并由同一系统上的消费者进行反序列化。该基准测试重点测试java.lang.Object.equals()方法。
+- `startup`：该基准测试为每个操作启动一个新的JVM，并从开始到结束进行时间测量。启动基准测试是单线程的，这允许在启动时进行多线程JVM优化。启动器必须与提交时的“main”JVM相同。可以修改启动器和启动器参数。每个启动基准测试都使用单个基准测试作为启动基准测试的参数，除了derby。其中，startup.scimark基准测试使用512千字节的数据集。
+- `sunflow`：该基准测试使用开源的全局光照渲染系统进行图形可视化的测试。sunflow库在内部是多线程的，即可以运行多个依赖线程束以渲染图像。实际应用中，只需要4个内部sunflow线程即可符合要求，具体线程数可以通过属性specjvm.benchmark.sunflow.threads.per.instance进行配置，不能超过16个。默认情况下，基准测试工具将使用基准线程数的一半，即会并行运行与硬件线程数一半相当的sunflow基准测试实例。这可以在specjvm.benchmark.threads.sunflow中进行配置。
+- `xml`：该基准测试有两个子基准测试：xml.transform、XML.validation。
+    - `xml.transform`通过将样式表（.xsl文件）应用于XML文档来测试JRE对javax.xml.transform（及其相关API）的实现。样式表和XML文档是几个实际示例，其大小和所使用的样式表功能各不相同（从3KB到156KB）。对xml.transform进行结果验证比对其他基准测试进行结果验证更复杂，因为不同的XML样式表处理器可能会产生略有不同但仍然正确的结果。<br>操作过程：首先，在测量间隔开始之前，运行一次工作负载并收集输出，对其进行规范化处理（符合规范化XML格式的规范）并与预期的规范化输出进行比较。在进行规范化之前，将产生HTML的转换输出转换为XML。此外，从此输出生成一个校验和。在测量间隔内，仅使用校验和检查每个操作的输出。<br>`xml.transform`的一次“操作”包括处理每个样式表/文档对，并以DOM源、SAX源和流源访问XML文档。为了确保每个样式表/文档对对于单个操作所花费的时间大致相等，一些输入对在一个操作期间会被多次处理。
+    - `xml.validation`通过使用XML模式（.xsd文件）对XML实例文档进行验证，测试JRE对javax.xml.validation（及其相关API）的实现。模式和XML文档是几个实际示例，其大小和所使用的XML模式功能各不相同（从1KB到607KB）。xml.validation的一个“操作”包括处理每个样式表/文档对，并以DOM源和SAX源访问XML文档。与xml.transform类似，一些输入对在一个操作期间会被多次处理，以确保每个输入对对于单个操作所花费的时间大致相等。
 
 ## 测试周期
 
@@ -321,10 +367,17 @@ SPECjvm2008关注秒为单位的操作时长。通过连续运行多个操作（
 
 ## 启动参数
 
+完整命令格式：
+```shell
+java [<jvm options>] -jar SPECjvm2008.jar [<SPECjvm2008 options>] [<benchmark name> ...]
+```
+
 运行示例：
 ```shell
 java -jar SPECjvm2008.jar --help
 ```
+
+SPECjvm2008启动参数如下：
 
 | 短参数 | 长参数 | 值类型 | 属性名称 | 详细描述 |
 |:----:|:----:|:----:|:----:|:----:|
@@ -357,6 +410,60 @@ java -jar SPECjvm2008.jar --help
 | -xd | --xmlDir | path | specjvm.benchmark.xml.validation.input.dir | 设置XML输入文件路径 |
 |   | <benchmark(s)> |   | specjvm.benchmarks | 注明要运行的全部基准测试的名称，默认运行所有基准 |
 
+## 测试模式
+
+- `--base`：总基础吞吐量测量，从完全兼容的基础运行中获得的总体吞吐量结果，不允许做任何JVM参数调整。（默认）
+- `--peak`：总峰值吞吐量测量，从完全兼容的峰值运行中获得的总吞吐量结果，可以添加JVM调优参数。
+- `--lagom`：Lagom工作负载是一个固定大小的工作负载，这意味着它会对每个基准测试执行一定数量的操作。Lagom是基准测试的base模式和peak模式的补充，用于需要运行固定数量的工作时。工作负载将在每个基准测试线程中运行指定数量的操作（每个基准测试的数量不同）。默认情况下，基准测试线程的数量将根据机器的硬件线程数进行调整，因此为了在不同大小的两个不同系统上具有相同数量的工作量，应该设置基准测试线程的数量。<br>Lagom工作负载不符合标准，旨在用于研究用途，作为衡量进展、开销或研究目的的工具。
+
+| 属性 | base模式 | peak模式 |
+|:----:|:----:|:----:|
+| 迭代轮次 | 1 | 1 |
+| 预热时间 | 120s | 随意 |
+| 迭代时间 | 240s | 240s或更多 |
+| 基准线程数 | 随意 | 随意 |
+
+## 结果报告
+
+单次测试产物如下：
+- `SPECjvm2008.<num>.raw`
+- `SPECjvm2008.<num>.html`
+- `SPECjvm2008.<num>.txt`
+- `SPECjvm2008.<num>.sub`
+- `SPECjvm2008.<num>.summary`
+
+就此的一些说明：
+- raw文件是在运行结束时从基准测试内部数据结构中的数据生成的，用于提交给SPEC。
+- txt文件和html文件包含相同的基本信息，用于测试者查看。
+- 如果html结果文件存在，还会有一个images子目录存放html中的图像。
+
+## 标准流程
+
+产生合规结果的推荐步骤：
+1. 使用系统和提交信息`SPECjvm2008/props/specjvm.reporter.properties`为报告者编辑属性文件。这样做是为了确保未在基本运行中设置JVM参数属性和堆大小属性。
+2. 使用harness配置`SPECjvm2008/props/specjvm.properties`编辑reporter的属性文件。一般来说，保留默认值即可，无需修改属性文件。如果修改，需要确保此配置文件指向报告者信息文件，还要确保这不包括对运行时的任何更改。
+3. 使用运行脚本或直接从命令行运行base模式：
+    ```shell
+    java -jar SPECjvm2008.jar --base --propfile props/specjvm.properties
+    ```
+4. 更新peak运行的属性文件，包括JVM参数属性的更新。
+5. 使用运行脚本或直接从命令行运行peak模式：
+    ```shell
+    java -Xms3000m -Xmx3000m -jar SPECjvm2008.jar --peak --propfile props/specjvm.properties
+    ```
+6. 查看`SPECjvm2008/results/`文件夹中的输出结果。
+
+提交合规结果的推荐步骤：
+1. 生成一个新的raw文件（以前文件的合并版本），然后生成一个包含新raw文件的zip文件。
+    ```shell
+    java -jar SPECjvm2008.jar --reporter --prepare <base raw file> <optional peak raw file>
+    ```
+2. 通过将zip文件复制到新位置并运行来检查原始文件，检查的过程中创建一个简短的摘要报告，该报告链接到子文件夹中每次运行的完整报告：
+    ```shell
+    java -jar SPECjvm2008.jar --reporter --specprocess <zip file>
+    ```
+3. 将此zip文件邮寄到[subjvm2008@spec.org](subjvm2008@spec.org)。
+
 ## 启动测试
 
 测试环境：
@@ -370,12 +477,6 @@ java -jar SPECjvm2008.jar --help
 - Graphics Card Version : NVIDIA Corporation TU102 [GeForce RTX 2080 Ti]
 - JDK Version : jdk-8u371-linux-x64
 - JRE Version : 1.8.0_371-b11
-
-测试模式：
-- `--base`：总基础吞吐量测量，从完全兼容的基础运行中获得的总体吞吐量结果，不允许做任何JVM参数调整。
-- `--peak`：总峰值吞吐量测量，从完全兼容的峰值运行中获得的总吞吐量结果，可以添加JVM调优参数。
-
-跳过签名检查：`-ikv`
 
 测试命令：
 ```shell
@@ -418,7 +519,11 @@ Noncompliant composite result : 969.38 ops/m
 
 ### perf
 
-perf是一个性能分析工具，用于在Linux系统上进行系统性能分析和调优。它可以帮助开发人员和系统管理员深入了解系统的性能瓶颈和应用程序的性能特征，并根据分析结果进行优化和调优。perf是一个强大的工具，被广泛用于开发、调试和优化各种类型的应用程序。
+perf最初是一个用于使用Linux中的性能计数器子系统的工具，目前已经进行了各种增强以添加跟踪功能。
+- 性能计数器（Performance Counters）是CPU硬件寄存器，用于计算硬件事件，例如执行的指令数、缓存未命中次数或分支预测失败次数。它们为分析应用程序的性能提供了基础，可以追踪动态控制流并识别热点。perf提供了丰富的硬件特定功能的通用抽象。其中包括每个任务、每个CPU和每个工作负载的计数器，以及在其之上的采样和源代码事件注释。
+- 跟踪点（Tracepoints）是放置在代码中逻辑位置的仪器化点，例如系统调用、TCP/IP事件、文件系统操作等。当不使用时，它们的开销几乎可以忽略不计，并且可以通过perf命令启用以收集包括时间戳和堆栈跟踪在内的信息。perf还可以使用kprobes和uprobes框架动态创建跟踪点，用于内核和用户空间的动态跟踪。
+
+目前的perf是一个性能分析工具，用于在Linux系统上进行系统性能分析和调优。它可以帮助开发人员和系统管理员深入了解系统的性能瓶颈和应用程序的性能特征，并根据分析结果进行优化和调优。perf是一个强大的工具，被广泛用于开发、调试和优化各种类型的应用程序。
 
 perf工具可以提供多种性能分析功能，包括：
 - CPU性能分析：可以使用perf来收集和分析CPU的使用情况，包括指令执行、缓存命中率、分支预测等信息，帮助发现CPU瓶颈和优化机会。
@@ -468,19 +573,23 @@ COMMAND：
 
 堆栈用作局部程序变量和程序执行状态的临时存储区。每次输入一个新函数时，处理器都会分配一个新的堆栈部分来保存该函数所需的信息。这部分称为函数的堆栈帧。它包含函数的临时变量和几个关键信息，包括保存的处理器寄存器和父例程的返回地址。处理器中的一个寄存器称为帧指针(FP)，它始终指向当前正在执行的函数的堆栈帧。当一个子程序被调用时，旧的帧指针被保存在堆栈中，一个新的堆栈帧被创建，并更新帧指针。因此，在任何时刻，整个函数调用历史都存在于堆栈中，并且可以通过“遍历”存储在堆栈中的帧指针链来确定。
 
-### 火焰图
+### FlameGraph
 
-提出火焰图的目的是展示函数调用关系和其在整个程序执行期间的耗时。技术专家通过分析火焰图中不同函数之间的调用关系和函数自身的耗时，可以了解应用程序在不同代码路径上的性能瓶颈，并进行性能优化。
+火焰图是分层数据的可视化，创建它是为了可视化分析软件的堆栈跟踪，以便快速准确地识别最频繁的代码路径。
+
+火焰图可视化了函数调用关系和其在整个程序执行期间的耗时。技术专家通过分析火焰图中不同函数之间的调用关系和函数自身的耗时，可以了解应用程序在不同代码路径上的性能瓶颈，并进行性能优化。
 
 火焰图具有以下特点：
-- 栈跟踪被表示为一列方框，每个方框代表一个函数（一个栈帧）。
-- 纵轴显示栈的深度，从根部位于底部到叶部位于顶部的顺序排列。顶部方框显示在收集栈跟踪时处于CPU上的函数，其下方是它的祖先函数。一个函数下面的函数是它的父函数。
-- 横轴跨越栈跟踪的收集。它不显示时间的流逝，所以从左到右的顺序没有特殊意义。栈跟踪的从左到右的顺序按照函数名称的字母顺序，从每个栈的根部到叶部排列。这样可以最大程度地合并方框：当水平相邻的函数方框相同时，它们会被合并。
-- 每个函数方框的宽度显示了该函数在栈跟踪中出现的频率，或者作为栈跟踪祖先的一部分。具有较宽方框的函数在栈跟踪中出现的频率比具有较窄方框的函数高，与它们的宽度成比例。
-- 如果方框足够宽，它会显示完整的函数名称。如果不够宽，会显示截断的函数名称带有省略号，或者不显示任何内容。
-- 每个方框的背景颜色并不重要，是随机选择的温暖色调。这种随机性有助于眼睛区分方框，特别是对于相邻的细长的"塔"。后面会讨论其他的颜色方案。
-- 可视化的分析范围可以跨越单个线程、多个线程、多个应用程序或多个主机。如果需要，可以生成单独的火焰图，特别是用于研究单个线程。
-- 栈跟踪可以从不同的分析器目标收集，方框的宽度可以反映除采样计数以外的其他度量指标。例如，分析器（或追踪器）可以测量线程的阻塞时间以及其栈跟踪。这可以被可视化为火焰图，其中横轴跨越总的阻塞时间，火焰图显示阻塞代码路径。
+- 火焰图的栈跟踪被表示为一列方框，每个方框代表一个函数（一个栈帧）。
+- 火焰图的纵轴显示栈的深度，从根部位于底部到叶部位于顶部的顺序排列。顶部方框显示在收集栈跟踪时处于CPU上的函数，其下方是它的祖先函数。一个函数下面的函数是它的父函数。
+- 火焰图的横轴跨越栈跟踪的收集。它不体现时间的流逝，所以从左到右的顺序没有特殊意义。栈跟踪的从左到右的顺序按照函数名称的字母顺序，从每个栈的根部到叶部排列。这样可以最大程度地合并方框：当水平相邻的函数方框相同时，它们会被合并。
+- 火焰图中每个函数方框的宽度显示了该函数在栈跟踪中出现的频率，或者作为栈跟踪祖先的一部分。具有较宽方框的函数在栈跟踪中出现的频率比具有较窄方框的函数高，与它们的宽度成比例。虽然如此，更宽的宽度未必意味着更频繁的CPU调用，也可能是单次函数调用消耗更多的CPU资源。
+    - 如果火焰图中每个函数方框足够宽，它会显示完整的函数名称；如果不够宽，会显示截断的函数名称带有省略号，或者不显示任何内容。
+    - 火焰图可以体现函数总的运行时间和函数自身的运行时间。总的运行时间是指函数及其所有子函数执行所花费的时间；自身的运行时间是指函数本身执行所花费的时间，不包括在子函数中花费的时间。
+- 火焰图中每个函数方框的背景颜色并不重要，是随机选择的温暖色调。这种随机性有助于眼睛区分方框，特别是对于相邻的细长的"塔"。
+- 火焰图可视化的分析范围可以跨越单个线程、多个线程、多个应用程序或多个主机。如果需要，可以生成单独的火焰图，特别是用于研究单个线程。
+- 栈跟踪可以从不同的分析器目标收集，方框的宽度可以反映除采样计数以外的其他度量指标。例如，分析器（或追踪器）可以测量线程的阻塞时间以及其栈跟踪。这些数据可以可视化为火焰图，其中横轴跨越总的阻塞时间，火焰图显示阻塞代码路径。
+- 当火焰图中同一个函数顶部出现多个分叉，意味着该函数出现了不同的逻辑分组，这些分组将分阶段工作。
 
 火焰图既是一种静态的可视化工具，也是一种动态的可视化工具。
 - 作为一种静态可视化工具，火焰图可以保存为图像，包含在印刷品中，仍然能传达"全局视图"，因为只有最常见的帧才有足够宽度来显示标签。整个分析器的输出被一次性可视化，最终用户可以直观地导航到感兴趣的区域，火焰图中的形状和位置成为观测软件执行的可视化地图。
@@ -518,6 +627,12 @@ perf-map-agent的bin目录包含一组用于结合常见的perf/dtrace操作和�
 - `create-links-in <targetdir>`：将符号链接安装到上述脚本中的<targetdir>目录中。
 - `dtrace-java-record-stack <pid>`：接受一个PID。运行dtrace来收集包括堆栈跟踪在内的性能数据。然后使用代理程序创建一个新的/tmp/perf-<pid>.map文件。
 - `dtrace-java-flames <pid>`：使用dtrace-java-record-stack收集数据，然后使用@brendangregg的FlameGraph工具创建可视化效果。要获得跨多个JIT编译方法的有意义的堆栈跟踪，需要使用-XX:+PreserveFramePointer（从JDK8更新60构建19开始可用），如ag netflix博客文章中所述。
+
+### 性能采样分析
+
+性能分析工具在应用程序的每个线程上定期间隔地获取调用堆栈的快照（采样），然后通过网络通信将该数据传输到事件接收服务器进行分析，这种分析方法称为采样分析。Sentry工具的分析器每秒收集大约100次采样（每10毫秒一次）。与确定性分析相比，采样分析在数据准确性和运行时开销之间提供了合理的权衡，因为确定性分析通过跟踪每个函数调用引入了显着更高的开销。
+
+对于大多数应用程序来说，在生产环境中启用分析的性能开销对终端用户来说是难以察觉的。分析的定量开销（以增加的CPU时间百分比衡量）取决于环境因素，例如SDK、平台、硬件以及工作负载是CPU密集型还是I/O密集型。Sentry采用的经验是，在每个平台上的典型配置中，引入大约1-5%的CPU时间开销用于性能采样分析。
 
 ## 配置环境
 
@@ -616,16 +731,17 @@ perf script -i perf.data | ./FlameGraph/stackcollapse-perf.pl | ./FlameGraph/fla
 
 ### SPECjvm2008性能监测
 
-Machine's Architecture : x86_64
-Operating System : GNU/Linux
-OS Kernel Release Number : 5.15.90.1-microsoft-standard-WSL2
-OS Kernel Version : #1 SMP Fri Jan 27 02:56:13 UTC 2023
-CPU Model : Intel(R) Core(TM) i5-8300H CPU @ 2.30GHz
-CPU Cores : 4
-Main Memory Size : 7.7GB
-Graphics Card Version : NULL
-JDK Version : jdk-8u371-linux-x64
-JRE Version : 1.8.0_371-b11
+测试环境：
+- Machine's Architecture : x86_64
+- Operating System : GNU/Linux
+- OS Kernel Release Number : 5.15.90.1-microsoft-standard-WSL2
+- OS Kernel Version : #1 SMP Fri Jan 27 02:56:13 UTC 2023
+- CPU Model : Intel(R) Core(TM) i5-8300H CPU @ 2.30GHz
+- CPU Cores : 4
+- Main Memory Size : 7.7GB
+- Graphics Card Version : GeForce GTX 1050 Ti
+- JDK Version : jdk-8u371-linux-x64
+- JRE Version : 1.8.0_371-b11
 
 编写[`wait_until_run_perf.sh`](./src/wait_until_run_perf.sh)脚本实现以下任务目标：在忙等待的状态下获取特定命令的进程pid，并在进程执行期间使用perf命令对该进程进行监测，最后在进程执行结束后结束程序。
 
@@ -693,7 +809,11 @@ chmod +x ./run_perf_map_agent.sh
 
 ## SPECjvm2008学习资料
 
-1. [简书: SPECjvm2008堵塞调试](https://www.jianshu.com/p/9924b206bdfe)
+1. [SPEC: SPECjvm2008用户指南](https://www.spec.org/jvm2008/docs/UserGuide.html)
+2. [SPEC: SPECjvm2008常见问题解答](https://www.spec.org/jvm2008/docs/FAQ.html)
+3. [SPEC: SPECjvm2008运行和报告规则](https://www.spec.org/jvm2008/docs/RunRules.html)
+4. [SPECjvm2008已知问题解决方案](https://www.spec.org/jvm2008/docs/KnownIssues.html)
+5. [简书: SPECjvm2008堵塞调试](https://www.jianshu.com/p/9924b206bdfe)
 
 ## perf学习资料
 
@@ -702,10 +822,14 @@ chmod +x ./run_perf_map_agent.sh
 3. [brendangregg的博客: perf Examples](https://www.brendangregg.com/perf.html)=
 4. [chinggg的博客: 在Docker中运行Linux性能分析工具perf](https://chinggg.github.io/post/docker-perf/)
 5. [GitHub: jvm-profiling-tools/perf-map-agent](https://github.com/jvm-profiling-tools/perf-map-agent)
-
+6. [Wiki: Perf tools support for Intel® Processor Trace](https://perf.wiki.kernel.org/index.php/Perf_tools_support_for_Intel%C2%AE_Processor_Trace)
 
 ## FlameGraph学习资料
 
 1. [The Flame Graph: This visualization of software execution is a new necessity for performance profiling and debugging.](https://dl.acm.org/doi/10.1145/2927299.2927301)
 2. [GitHub: brendangregg/FlameGraph](https://github.com/brendangregg/FlameGraph)
-3. [brendangregg的博客: Flame Graphs](https://www.brendangregg.com/flamegraphs.html)
+3. [GitHub: spiermar/d3-flame-graph](https://github.com/spiermar/d3-flame-graph)
+4. [brendangregg的博客: Flame Graphs](https://www.brendangregg.com/flamegraphs.html)
+
+## 扩展资料
+1. [GitHub: kingsum/PIPA](https://github.com/kingsum/PIPA/wiki/Java-Performance)
